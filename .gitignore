@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build output
+dist/
+build/
+
+# Reports
+reports/
+test-results/
+playwright-report/
+allure-results/
+allure-report/
+
+# Environment files
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Playwright
+playwright/.cache/

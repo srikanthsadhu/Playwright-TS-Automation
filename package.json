@@ -1,0 +1,36 @@
+{
+  "name": "playwright-ts-automation",
+  "version": "1.0.0",
+  "description": "Playwright TypeScript + Cucumber automation framework for UI, API, and Accessibility testing",
+  "main": "index.js",
+  "scripts": {
+    "test": "cucumber-js",
+    "test:ui": "cucumber-js --tags '@ui'",
+    "test:api": "cucumber-js --tags '@api'",
+    "test:accessibility": "cucumber-js --tags '@accessibility'",
+    "report": "node src/utils/reportGenerator.js"
+  },
+  "keywords": [
+    "playwright",
+    "typescript",
+    "cucumber",
+    "automation",
+    "testing"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@axe-core/playwright": "^4.8.0",
+    "@cucumber/cucumber": "^10.0.0",
+    "@playwright/test": "^1.40.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.0",
+    "properties-reader": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "cucumber-html-reporter": "^7.1.1",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.3.0"
+  }
+}
