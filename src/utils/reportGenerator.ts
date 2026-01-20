@@ -1,6 +1,6 @@
-const reporter = require('cucumber-html-reporter');
-const path = require('path');
-const fs = require('fs');
+import reporter from 'cucumber-html-reporter';
+import path from 'path';
+import fs from 'fs';
 
 const options = {
   theme: 'bootstrap',

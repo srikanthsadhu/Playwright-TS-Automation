@@ -8,7 +8,7 @@
     "test:ui": "cucumber-js --tags '@ui'",
     "test:api": "cucumber-js --tags '@api'",
     "test:accessibility": "cucumber-js --tags '@accessibility'",
-    "report": "node src/utils/reportGenerator.js"
+    "report": "ts-node src/utils/reportGenerator.ts"
   },
   "keywords": [
     "playwright",

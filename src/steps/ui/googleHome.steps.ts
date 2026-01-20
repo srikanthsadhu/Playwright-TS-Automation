@@ -8,7 +8,7 @@ let page: Page;
 let googleHomePage: GoogleHomePage;
 let propertyReader: PropertyReader;
 
-Before(async function () {
+Before({ tags: '@ui and not @login' }, async function () {
   propertyReader = new PropertyReader(process.env.ENV || 'dev');
   browser = await chromium.launch({ 
     headless: propertyReader.isHeadless() 
@@ -17,7 +17,7 @@ Before(async function () {
   googleHomePage = new GoogleHomePage(page);
 });
 
-After(async function () {
+After({ tags: '@ui and not @login' }, async function () {
   if (page) {
     await page.close();
   }
