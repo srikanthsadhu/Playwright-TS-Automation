@@ -44,14 +44,15 @@ When('I click the Next button', async function () {
 });
 
 Then('I should proceed to password page', async function () {
-  // Wait for navigation and check if password field appears or URL changes
-  await page.waitForTimeout(2000);
+  // Wait for navigation and check if URL changes or password field appears
+  await page.waitForLoadState('networkidle');
   const url = page.url();
   expect(url).toBeDefined();
 });
 
 Then('I should see an error message', async function () {
-  await page.waitForTimeout(2000);
+  // Wait for page to process the input
+  await page.waitForLoadState('networkidle');
   // Error message handling can vary, so we just check if we're still on the same page
   const url = page.url();
   expect(url).toContain('accounts.google.com');

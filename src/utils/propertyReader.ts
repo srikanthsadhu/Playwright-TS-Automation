@@ -10,7 +10,11 @@ export class PropertyReader {
   }
 
   public get(key: string): string {
-    return this.properties.get(key) as string;
+    const value = this.properties.get(key);
+    if (value === null || value === undefined) {
+      throw new Error(`Property '${key}' not found in configuration`);
+    }
+    return value as string;
   }
 
   public getBaseUrl(): string {
@@ -30,6 +34,10 @@ export class PropertyReader {
   }
 
   public getTimeout(): number {
-    return parseInt(this.get('timeout'), 10);
+    const timeout = parseInt(this.get('timeout'), 10);
+    if (isNaN(timeout)) {
+      throw new Error(`Invalid timeout value in configuration`);
+    }
+    return timeout;
   }
 }
