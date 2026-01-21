@@ -32,8 +32,7 @@ Given('I navigate to Google home page', async function () {
 });
 
 Then('I should see the Google logo', async function () {
-  const isVisible = await googleHomePage.isLogoVisible();
-  expect(isVisible).toBeTruthy();
+  await expect(googleHomePage.googleLogo).toBeVisible({ timeout: 10000 });
 });
 
 Then('the page title should be {string}', async function (expectedTitle: string) {
@@ -50,4 +49,11 @@ Then('I should see search results', async function () {
   await page.waitForLoadState('networkidle');
   const url = page.url();
   expect(url).toContain('search');
+});
+
+After({ tags: '@ui' }, async function (scenario) {
+  if (scenario.result?.status === 'FAILED') {
+    const screenshot = await page.screenshot();
+    this.attach(screenshot, 'image/png');
+  }
 });

@@ -4,7 +4,7 @@ import * as path from 'path';
 export class PropertyReader {
   private properties: PropertiesReader.Reader;
 
-  constructor(environment: string = 'dev') {
+  constructor(environment: string = 'qa') {
     const configPath = path.resolve(__dirname, `../../config/${environment}.properties`);
     this.properties = PropertiesReader(configPath);
   }

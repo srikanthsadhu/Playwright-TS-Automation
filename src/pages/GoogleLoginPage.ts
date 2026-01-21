@@ -7,6 +7,7 @@ export class GoogleLoginPage {
   readonly passwordInput: Locator;
   readonly signInButton: Locator;
   readonly errorMessage: Locator;
+  readonly consentAcceptButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -15,10 +16,25 @@ export class GoogleLoginPage {
     this.passwordInput = page.locator('input[type="password"]');
     this.signInButton = page.locator('#passwordNext');
     this.errorMessage = page.locator('[role="alert"]');
+    this.consentAcceptButton = page.locator('button:has-text("Accept all"), button:has-text("accept all"), button[aria-label*="Accept"], #L2AGLb');
   }
 
   async navigate(url: string): Promise<void> {
     await this.page.goto(url);
+    await this.handleConsentBanner();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async handleConsentBanner(): Promise<void> {
+    try {
+      // Wait for the consent button with a shorter timeout
+      await this.consentAcceptButton.first().waitFor({ state: 'visible', timeout: 3000 });
+      await this.consentAcceptButton.first().click();
+      console.log('Consent banner accepted successfully');
+    } catch (error) {
+      // Consent banner might not appear, continue with test
+      console.log('No consent banner detected or already handled');
+    }
   }
 
   async enterEmail(email: string): Promise<void> {

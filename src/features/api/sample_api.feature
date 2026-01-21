@@ -3,7 +3,8 @@ Feature: Sample API Tests
   As a developer
   I want to test REST APIs
   So that I can verify API functionality
-
+ 
+  @apiGet
   Scenario: Get list of users
     When I send a GET request to "/users"
     Then the response status code should be 200

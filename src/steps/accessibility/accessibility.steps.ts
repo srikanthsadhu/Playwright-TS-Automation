@@ -11,8 +11,8 @@ let violations: any[] = [];
 
 Before({ tags: '@accessibility' }, async function () {
   propertyReader = new PropertyReader(process.env.ENV || 'dev');
-  browser = await chromium.launch({ 
-    headless: propertyReader.isHeadless() 
+  browser = await chromium.launch({
+    headless: propertyReader.isHeadless()
   });
   page = await browser.newPage();
 });
@@ -68,4 +68,11 @@ Then('the page should comply with accessibility standards', function () {
     v => v.impact === 'critical' || v.impact === 'serious'
   );
   expect(seriousViolations.length).toBe(0);
+});
+
+After({ tags: '@ui' }, async function (scenario) {
+  if (scenario.result?.status === 'FAILED') {
+    const screenshot = await page.screenshot();
+    this.attach(screenshot, 'image/png');
+  }
 });

@@ -13,6 +13,7 @@ Before({ tags: '@api' }, function () {
 });
 
 When('I send a GET request to {string}', async function (endpoint: string) {
+  console.log('******API BASE URL:', `${apiBaseUrl}${endpoint}`);
   response = await axios.get(`${apiBaseUrl}${endpoint}`);
 });
 
@@ -35,14 +36,18 @@ Then('the response status code should be {int}', function (statusCode: number) {
 });
 
 Then('the response should contain a list of users', function () {
+  // console.log('RESPONSE of GET:'+ JSON.stringify(response.data));
   expect(Array.isArray(response.data)).toBeTruthy();
   expect(response.data.length).toBeGreaterThan(0);
+  console.log('RESPONSE of GET First Name ********:'+ JSON.stringify(response.data[0].name));
 });
 
 Then('the response should contain user details', function () {
   expect(response.data).toBeDefined();
   expect(response.data.id).toBeDefined();
   expect(response.data.name).toBeDefined();
+
+
 });
 
 Then('the response should contain the created user', function () {
