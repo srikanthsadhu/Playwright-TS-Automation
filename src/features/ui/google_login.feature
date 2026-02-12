@@ -1,4 +1,4 @@
-@ui
+@ui @login
 Feature: Google Login Page
   As a user
   I want to test Google login functionality

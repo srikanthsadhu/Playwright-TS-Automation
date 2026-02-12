@@ -1,12 +1,14 @@
-import { Given, When, Then, Before, After } from '@cucumber/cucumber';
+import { When, Then, Before, After } from '@cucumber/cucumber';
 import { chromium, Browser, Page } from '@playwright/test';
 import { injectAxe, checkA11y, getViolations } from 'axe-playwright';
 import { expect } from '@playwright/test';
 import { PropertyReader } from '../../utils/propertyReader';
+import { GoogleHomePage } from '../../pages/GoogleHomePage';
 
 let browser: Browser;
 let page: Page;
 let propertyReader: PropertyReader;
+let googleHomePage: GoogleHomePage;
 let violations: any[] = [];
 
 Before({ tags: '@accessibility' }, async function () {
@@ -15,6 +17,11 @@ Before({ tags: '@accessibility' }, async function () {
     headless: propertyReader.isHeadless()
   });
   page = await browser.newPage();
+  googleHomePage = new GoogleHomePage(page);
+
+  // Navigate to Google home page automatically
+  await googleHomePage.navigate(propertyReader.getBaseUrl());
+  await googleHomePage.waitForSearchBox();
 });
 
 After({ tags: '@accessibility' }, async function () {
@@ -68,11 +75,4 @@ Then('the page should comply with accessibility standards', function () {
     v => v.impact === 'critical' || v.impact === 'serious'
   );
   expect(seriousViolations.length).toBe(0);
-});
-
-After({ tags: '@ui' }, async function (scenario) {
-  if (scenario.result?.status === 'FAILED') {
-    const screenshot = await page.screenshot();
-    this.attach(screenshot, 'image/png');
-  }
 });

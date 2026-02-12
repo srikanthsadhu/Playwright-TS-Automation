@@ -1,13 +1,23 @@
 module.exports = {
   default: {
-    require: ['src/steps/**/*.ts'],
+    require: ['src/steps/**/*.ts', 'src/hooks/**/*.ts'],
     requireModule: ['ts-node/register'],
     format: [
-      'json:reports/cucumber-report.json',
-      'html:reports/cucumber-report.html',
-      'progress',
-      'allure-cucumberjs/reporter:allure-results' // Add Allure by default
+      `json:reports/cucumber-report-${process.pid}.json`,
+      'progress'
     ],
-    publishQuiet: true
+    paths: ['src/features/**/*.feature'],
+    parallel: Number(process.env.PARALLEL || 1)
+  },
+  pact: {
+    require: ['src/steps/**/*.ts', 'src/hooks/**/*.ts'],
+    requireModule: ['ts-node/register'],
+    format: [
+      `json:reports/cucumber-report-${process.pid}.json`,
+      'progress'
+    ],
+    paths: ['src/features/pact/**/*.feature'],
+    parallel: Number(process.env.PARALLEL || 1),
+    strict: true
   }
 };
