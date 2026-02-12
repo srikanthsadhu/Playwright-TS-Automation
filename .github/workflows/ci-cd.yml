@@ -1,0 +1,133 @@
+name: ci-cd
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test
+
+      - name: Upload cucumber report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cucumber-reports
+          path: reports/
+
+  cd:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    needs: ci
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [dev, staging, production]
+    environment: ${{ matrix.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy (App Service / Container Apps / AKS)
+        env:
+          AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          AZURE_HOSTING_TYPE: ${{ vars.AZURE_HOSTING_TYPE }}
+          AZURE_APP_NAME: ${{ vars.AZURE_APP_NAME }}
+          AZURE_CONTAINERAPP_NAME: ${{ vars.AZURE_CONTAINERAPP_NAME }}
+          AZURE_ACR_NAME: ${{ vars.AZURE_ACR_NAME }}
+          AZURE_IMAGE_NAME: ${{ vars.AZURE_IMAGE_NAME }}
+          AZURE_AKS_CLUSTER_NAME: ${{ vars.AZURE_AKS_CLUSTER_NAME }}
+          AZURE_AKS_NAMESPACE: ${{ vars.AZURE_AKS_NAMESPACE }}
+          DEPLOY_PACKAGE_PATH: ${{ vars.DEPLOY_PACKAGE_PATH }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${AZURE_HOSTING_TYPE:-}" ]]; then
+            echo "AZURE_HOSTING_TYPE is required (appservice | containerapps | aks)."
+            exit 1
+          fi
+
+          case "$AZURE_HOSTING_TYPE" in
+            appservice)
+              if [[ -z "${AZURE_APP_NAME:-}" || -z "${AZURE_RESOURCE_GROUP:-}" ]]; then
+                echo "AZURE_APP_NAME and AZURE_RESOURCE_GROUP are required for App Service."
+                exit 1
+              fi
+              if [[ -z "${DEPLOY_PACKAGE_PATH:-}" ]]; then
+                echo "DEPLOY_PACKAGE_PATH is required for App Service deploy (zip or folder)."
+                exit 1
+              fi
+              echo "Deploying to App Service: $AZURE_APP_NAME"
+              az webapp deploy \
+                --resource-group "$AZURE_RESOURCE_GROUP" \
+                --name "$AZURE_APP_NAME" \
+                --src-path "$DEPLOY_PACKAGE_PATH"
+              ;;
+
+            containerapps)
+              if [[ -z "${AZURE_CONTAINERAPP_NAME:-}" || -z "${AZURE_RESOURCE_GROUP:-}" ]]; then
+                echo "AZURE_CONTAINERAPP_NAME and AZURE_RESOURCE_GROUP are required for Container Apps."
+                exit 1
+              fi
+              if [[ -z "${AZURE_IMAGE_NAME:-}" ]]; then
+                echo "AZURE_IMAGE_NAME is required for Container Apps deploy (e.g., myacr.azurecr.io/app:tag)."
+                exit 1
+              fi
+              echo "Deploying to Container App: $AZURE_CONTAINERAPP_NAME"
+              az containerapp update \
+                --resource-group "$AZURE_RESOURCE_GROUP" \
+                --name "$AZURE_CONTAINERAPP_NAME" \
+                --image "$AZURE_IMAGE_NAME"
+              ;;
+
+            aks)
+              if [[ -z "${AZURE_AKS_CLUSTER_NAME:-}" || -z "${AZURE_RESOURCE_GROUP:-}" ]]; then
+                echo "AZURE_AKS_CLUSTER_NAME and AZURE_RESOURCE_GROUP are required for AKS."
+                exit 1
+              fi
+              if [[ -z "${AZURE_AKS_NAMESPACE:-}" || -z "${AZURE_IMAGE_NAME:-}" ]]; then
+                echo "AZURE_AKS_NAMESPACE and AZURE_IMAGE_NAME are required for AKS deploy."
+                exit 1
+              fi
+              echo "Deploying to AKS: $AZURE_AKS_CLUSTER_NAME"
+              az aks get-credentials \
+                --resource-group "$AZURE_RESOURCE_GROUP" \
+                --name "$AZURE_AKS_CLUSTER_NAME" \
+                --overwrite-existing
+              kubectl -n "$AZURE_AKS_NAMESPACE" set image deployment/app app="$AZURE_IMAGE_NAME"
+              ;;
+
+            *)
+              echo "Unsupported AZURE_HOSTING_TYPE: $AZURE_HOSTING_TYPE"
+              exit 1
+              ;;
+          esac

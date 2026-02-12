@@ -20,9 +20,10 @@ export class GoogleLoginPage {
   }
 
   async navigate(url: string): Promise<void> {
-    await this.page.goto(url);
+    await this.page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await this.handleConsentBanner();
-    await this.page.waitForTimeout(1000);
+    // Wait for email input to be visible
+    await this.emailInput.waitFor({ state: 'visible', timeout: 10000 });
   }
 
   async handleConsentBanner(): Promise<void> {
@@ -30,31 +31,31 @@ export class GoogleLoginPage {
       // Wait for the consent button with a shorter timeout
       await this.consentAcceptButton.first().waitFor({ state: 'visible', timeout: 3000 });
       await this.consentAcceptButton.first().click();
-      console.log('Consent banner accepted successfully');
+      console.log('Consent banner accepted successfully on login page');
+      await this.page.waitForTimeout(1000);
     } catch (error) {
       // Consent banner might not appear, continue with test
-      console.log('No consent banner detected or already handled');
+      console.log('No consent banner detected on login page');
     }
   }
 
   async enterEmail(email: string): Promise<void> {
+    await this.emailInput.waitFor({ state: 'visible', timeout: 10000 });
     await this.emailInput.fill(email);
   }
 
   async clickNext(): Promise<void> {
+    await this.nextButton.waitFor({ state: 'visible', timeout: 5000 });
     await this.nextButton.click();
   }
 
   async enterPassword(password: string): Promise<void> {
+    await this.passwordInput.waitFor({ state: 'visible', timeout: 10000 });
     await this.passwordInput.fill(password);
   }
 
   async clickSignIn(): Promise<void> {
     await this.signInButton.click();
-  }
-
-  async isErrorVisible(): Promise<boolean> {
-    return await this.errorMessage.isVisible();
   }
 
   async getErrorMessage(): Promise<string> {
